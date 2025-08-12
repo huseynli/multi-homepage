@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "next-i18next";
-import { HiChevronDown, HiViewGrid } from "react-icons/hi";
+import { HiChevronDown, HiViewGrid, HiCog } from "react-icons/hi";
 import classNames from "classnames";
 import { useDashboard } from "utils/contexts/dashboard";
+
+import DashboardManagement from "./dashboard-management";
 
 export default function DashboardSelector() {
   const { t } = useTranslation();
   const { dashboards, currentDashboard, switchDashboard } = useDashboard();
   const [isOpen, setIsOpen] = useState(false);
+  const [showManagement, setShowManagement] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -96,8 +99,30 @@ export default function DashboardSelector() {
               </button>
             ))}
           </div>
+          
+          <div className="border-t border-theme-300/20 dark:border-white/10 pt-1 mt-1">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setShowManagement(true);
+              }}
+              className={classNames(
+                "w-full text-left px-4 py-2 text-sm transition-colors duration-150",
+                "hover:bg-theme-200/30 dark:hover:bg-white/10",
+                "text-theme-700 dark:text-theme-300 flex items-center"
+              )}
+            >
+              <HiCog className="w-4 h-4 mr-2" />
+              Manage Dashboards
+            </button>
+          </div>
         </div>
       )}
+      
+      <DashboardManagement 
+        isOpen={showManagement} 
+        onClose={() => setShowManagement(false)} 
+      />
     </div>
   );
 }
