@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/router";
 import useSWR from "swr";
 
 const DashboardContext = createContext();
 
 export function DashboardProvider({ children }) {
+  const router = useRouter();
   const [activeDashboard, setActiveDashboard] = useState("default");
+  const [isInitialized, setIsInitialized] = useState(false);
   const { data: dashboardsData } = useSWR("/api/dashboards");
   
   const dashboards = useMemo(() => {
@@ -22,26 +25,47 @@ export function DashboardProvider({ children }) {
     return dashboards.find(d => d.id === activeDashboard) || dashboards[0];
   }, [dashboards, activeDashboard]);
 
-  // Initialize active dashboard from localStorage or use default
+  // Initialize dashboard from URL, then localStorage, then default
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (!router.isReady || isInitialized) return;
+
+    const urlDashboard = router.query.dashboard;
+    let targetDashboard = "default";
+
+    if (urlDashboard && dashboards.some(d => d.id === urlDashboard)) {
+      // Use dashboard from URL if valid
+      targetDashboard = urlDashboard;
+    } else if (typeof window !== "undefined") {
+      // Fallback to localStorage if no valid URL parameter
       const savedDashboard = localStorage.getItem("activeDashboard");
       if (savedDashboard && dashboards.some(d => d.id === savedDashboard)) {
-        setActiveDashboard(savedDashboard);
+        targetDashboard = savedDashboard;
       }
     }
-  }, [dashboards]);
+
+    setActiveDashboard(targetDashboard);
+    setIsInitialized(true);
+
+    // Update URL if it doesn't match the target dashboard
+    if (targetDashboard !== "default" && !urlDashboard) {
+      router.replace({ pathname: router.pathname, query: { dashboard: targetDashboard } }, undefined, { shallow: true });
+    }
+  }, [router.isReady, router.query.dashboard, dashboards, isInitialized, router]);
 
   // Save active dashboard to localStorage
   useEffect(() => {
-    if (typeof window !== "undefined" && activeDashboard) {
+    if (typeof window !== "undefined" && activeDashboard && isInitialized) {
       localStorage.setItem("activeDashboard", activeDashboard);
     }
-  }, [activeDashboard]);
+  }, [activeDashboard, isInitialized]);
 
   const switchDashboard = (dashboardId) => {
     if (dashboards.some(d => d.id === dashboardId)) {
       setActiveDashboard(dashboardId);
+      
+      // Update URL
+      const newQuery = dashboardId === "default" ? {} : { dashboard: dashboardId };
+      router.push({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true });
     }
   };
 
