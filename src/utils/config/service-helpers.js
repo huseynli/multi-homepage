@@ -5,6 +5,7 @@ import Docker from "dockerode";
 import yaml from "js-yaml";
 
 import checkAndCopyConfig, { CONF_DIR, getSettings, substituteEnvironmentVars } from "utils/config/config";
+import { getDashboardConfigPath } from "utils/config/dashboard-helpers";
 import getDockerArguments from "utils/config/docker";
 import { getKubeConfig } from "utils/config/kubernetes";
 import * as shvl from "utils/config/shvl";
@@ -49,10 +50,10 @@ function parseServicesToGroups(services) {
   });
 }
 
-export async function servicesFromConfig() {
-  checkAndCopyConfig("services.yaml");
+export async function servicesFromConfig(dashboardId = null) {
+  checkAndCopyConfig("services.yaml", dashboardId);
 
-  const servicesYaml = path.join(CONF_DIR, "services.yaml");
+  const servicesYaml = getDashboardConfigPath(dashboardId, "services.yaml");
   const rawFileContents = await fs.readFile(servicesYaml, "utf8");
   const fileContents = substituteEnvironmentVars(rawFileContents);
   const services = yaml.load(fileContents);

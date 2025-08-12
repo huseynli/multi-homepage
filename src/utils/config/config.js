@@ -13,18 +13,22 @@ export const CONF_DIR = process.env.HOMEPAGE_CONFIG_DIR
   ? process.env.HOMEPAGE_CONFIG_DIR
   : join(process.cwd(), "config");
 
-export default function checkAndCopyConfig(config) {
+export default function checkAndCopyConfig(config, dashboardId = null) {
+  const configDir = dashboardId && dashboardId !== "default" 
+    ? join(CONF_DIR, "dashboards", dashboardId)
+    : CONF_DIR;
+
   // Ensure config directory exists
-  if (!existsSync(CONF_DIR)) {
+  if (!existsSync(configDir)) {
     try {
-      mkdirSync(CONF_DIR, { recursive: true });
+      mkdirSync(configDir, { recursive: true });
     } catch (e) {
-      console.warn(`Could not create config directory ${CONF_DIR}: ${e.message}`);
+      console.warn(`Could not create config directory ${configDir}: ${e.message}`);
       return false;
     }
   }
 
-  const configYaml = join(CONF_DIR, config);
+  const configYaml = join(configDir, config);
 
   // If the config file doesn't exist, try to copy the skeleton
   if (!existsSync(configYaml)) {
@@ -35,7 +39,7 @@ export default function checkAndCopyConfig(config) {
     } catch (err) {
       console.error("❌ Failed to initialize required config: %s", configYaml);
       console.error("Reason: %s", err.message);
-      console.error("Hint: Make /app/config writable or manually place the config file.");
+      console.error("Hint: Make config directory writable or manually place the config file.");
       process.exit(1);
     }
 
@@ -80,10 +84,14 @@ export function substituteEnvironmentVars(str) {
   return result;
 }
 
-export function getSettings() {
-  checkAndCopyConfig("settings.yaml");
+export function getSettings(dashboardId = null) {
+  checkAndCopyConfig("settings.yaml", dashboardId);
 
-  const settingsYaml = join(CONF_DIR, "settings.yaml");
+  const configDir = dashboardId && dashboardId !== "default" 
+    ? join(CONF_DIR, "dashboards", dashboardId)
+    : CONF_DIR;
+  const settingsYaml = join(configDir, "settings.yaml");
+  
   const rawFileContents = readFileSync(settingsYaml, "utf8");
   const fileContents = substituteEnvironmentVars(rawFileContents);
   const initialSettings = yaml.load(fileContents) ?? {};

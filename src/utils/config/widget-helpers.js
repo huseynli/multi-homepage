@@ -4,11 +4,12 @@ import path from "path";
 import yaml from "js-yaml";
 
 import checkAndCopyConfig, { CONF_DIR, substituteEnvironmentVars } from "utils/config/config";
+import { getDashboardConfigPath } from "utils/config/dashboard-helpers";
 
-export async function widgetsFromConfig() {
-  checkAndCopyConfig("widgets.yaml");
+export async function widgetsFromConfig(dashboardId = null) {
+  checkAndCopyConfig("widgets.yaml", dashboardId);
 
-  const widgetsYaml = path.join(CONF_DIR, "widgets.yaml");
+  const widgetsYaml = getDashboardConfigPath(dashboardId, "widgets.yaml");
   const rawFileContents = await fs.readFile(widgetsYaml, "utf8");
   const fileContents = substituteEnvironmentVars(rawFileContents);
   const widgets = yaml.load(fileContents);

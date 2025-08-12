@@ -1,6 +1,7 @@
 /* eslint-disable react/no-array-index-key */
 import classNames from "classnames";
 import BookmarksGroup from "components/bookmarks/group";
+import DashboardSelector from "components/dashboard-selector";
 import ErrorBoundary from "components/errorboundry";
 import QuickLaunch from "components/quicklaunch";
 import ServicesGroup from "components/services/group";
@@ -17,12 +18,14 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { BiError } from "react-icons/bi";
 import useSWR, { SWRConfig } from "swr";
 import { ColorContext } from "utils/contexts/color";
+import { useDashboard } from "utils/contexts/dashboard";
 import { SettingsContext } from "utils/contexts/settings";
 import { TabContext } from "utils/contexts/tab";
 import { ThemeContext } from "utils/contexts/theme";
 
 import { bookmarksResponse, servicesResponse, widgetsResponse } from "utils/config/api-response";
 import { getSettings } from "utils/config/config";
+import { getDashboards } from "utils/config/dashboard-helpers";
 import useWindowFocus from "utils/hooks/window-focus";
 import createLogger from "utils/logger";
 import themes from "utils/styles/themes";
@@ -50,6 +53,7 @@ export async function getStaticProps() {
     const services = await servicesResponse();
     const bookmarks = await bookmarksResponse();
     const widgets = await widgetsResponse();
+    const dashboards = getDashboards();
 
     return {
       props: {
@@ -58,6 +62,7 @@ export async function getStaticProps() {
           "/api/services": services,
           "/api/bookmarks": bookmarks,
           "/api/widgets": widgets,
+          "/api/dashboards": { dashboards },
           "/api/hash": false,
         },
         ...(await serverSideTranslations(settings.language ?? "en")),
@@ -74,6 +79,7 @@ export async function getStaticProps() {
           "/api/services": [],
           "/api/bookmarks": [],
           "/api/widgets": [],
+          "/api/dashboards": { dashboards: [] },
           "/api/hash": false,
         },
         ...(await serverSideTranslations("en")),
@@ -203,19 +209,22 @@ function Home({ initialSettings }) {
   const { color, setColor } = useContext(ColorContext);
   const { settings, setSettings } = useContext(SettingsContext);
   const { activeTab, setActiveTab } = useContext(TabContext);
+  const { activeDashboard } = useDashboard();
   const { asPath } = useRouter();
 
   useEffect(() => {
     setSettings(initialSettings);
   }, [initialSettings, setSettings]);
 
-  const { data: services } = useSWR("/api/services");
-  const { data: bookmarks } = useSWR("/api/bookmarks");
-  const { data: widgets } = useSWR("/api/widgets");
+  const dashboardParam = activeDashboard !== "default" ? `?dashboard=${activeDashboard}` : "";
+  const { data: services } = useSWR(`/api/services${dashboardParam}`);
+  const { data: bookmarks } = useSWR(`/api/bookmarks${dashboardParam}`);
+  const { data: widgets } = useSWR(`/api/widgets${dashboardParam}`);
 
-  const servicesAndBookmarks = [...bookmarks.map((bg) => bg.bookmarks).flat(), ...getAllServices(services)].filter(
-    (i) => i?.href,
-  );
+  const servicesAndBookmarks = [
+    ...(bookmarks || []).map((bg) => bg.bookmarks).flat(), 
+    ...getAllServices(services || [])
+  ].filter((i) => i?.href);
 
   useEffect(() => {
     if (settings.language) {
@@ -293,7 +302,7 @@ function Home({ initialSettings }) {
     }
 
     const serviceGroups = services?.filter(tabGroupFilter).filter(undefinedGroupFilter);
-    const bookmarkGroups = bookmarks.filter(tabGroupFilter).filter(undefinedGroupFilter);
+    const bookmarkGroups = (bookmarks || []).filter(tabGroupFilter).filter(undefinedGroupFilter);
 
     return (
       <>
@@ -482,10 +491,13 @@ function Home({ initialSettings }) {
         {servicesAndBookmarksGroups}
 
         <div id="footer" className="flex flex-col mt-auto p-8 w-full">
-          <div id="style" className="flex w-full justify-end">
-            {!settings?.color && <ColorToggle />}
-            <Revalidate />
-            {!settings.theme && <ThemeToggle />}
+          <div id="style" className="flex w-full justify-between">
+            <DashboardSelector />
+            <div className="flex items-center space-x-2">
+              {!settings?.color && <ColorToggle />}
+              <Revalidate />
+              {!settings.theme && <ThemeToggle />}
+            </div>
           </div>
 
           <div id="version" className="flex mt-4 w-full justify-end">

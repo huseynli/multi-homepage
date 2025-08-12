@@ -6,6 +6,7 @@ import "styles/manrope.css";
 import "styles/theme.css";
 import { SWRConfig } from "swr";
 import { ColorProvider } from "utils/contexts/color";
+import { DashboardProvider } from "utils/contexts/dashboard";
 import { SettingsProvider } from "utils/contexts/settings";
 import { TabProvider } from "utils/contexts/tab";
 import { ThemeProvider } from "utils/contexts/theme";
@@ -83,11 +84,13 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <ColorProvider>
         <ThemeProvider>
-          <SettingsProvider>
-            <TabProvider>
-              <Component {...pageProps} />
-            </TabProvider>
-          </SettingsProvider>
+          <DashboardProvider>
+            <SettingsProvider>
+              <TabProvider>
+                <Component {...pageProps} />
+              </TabProvider>
+            </SettingsProvider>
+          </DashboardProvider>
         </ThemeProvider>
       </ColorProvider>
     </SWRConfig>

@@ -5,6 +5,7 @@ import path from "path";
 import yaml from "js-yaml";
 
 import checkAndCopyConfig, { CONF_DIR, getSettings, substituteEnvironmentVars } from "utils/config/config";
+import { getDashboardConfigPath } from "utils/config/dashboard-helpers";
 import {
   cleanServiceGroups,
   findGroupByName,
@@ -25,10 +26,10 @@ function compareServices(service1, service2) {
   return service1.name.localeCompare(service2.name);
 }
 
-export async function bookmarksResponse() {
-  checkAndCopyConfig("bookmarks.yaml");
+export async function bookmarksResponse(dashboardId = null) {
+  checkAndCopyConfig("bookmarks.yaml", dashboardId);
 
-  const bookmarksYaml = path.join(CONF_DIR, "bookmarks.yaml");
+  const bookmarksYaml = getDashboardConfigPath(dashboardId, "bookmarks.yaml");
   const rawFileContents = await fs.readFile(bookmarksYaml, "utf8");
   const fileContents = substituteEnvironmentVars(rawFileContents);
   const bookmarks = yaml.load(fileContents);
@@ -38,7 +39,7 @@ export async function bookmarksResponse() {
   let initialSettings;
 
   try {
-    initialSettings = await getSettings();
+    initialSettings = await getSettings(dashboardId);
   } catch (e) {
     console.error("Failed to load settings.yaml, please check for errors");
     if (e) console.error(e.toString());
@@ -71,11 +72,11 @@ export async function bookmarksResponse() {
   return [...sortedGroups.filter((g) => g), ...unsortedGroups];
 }
 
-export async function widgetsResponse() {
+export async function widgetsResponse(dashboardId = null) {
   let configuredWidgets;
 
   try {
-    configuredWidgets = cleanWidgetGroups(await widgetsFromConfig());
+    configuredWidgets = cleanWidgetGroups(await widgetsFromConfig(dashboardId));
   } catch (e) {
     console.error("Failed to load widgets, please check widgets.yaml for errors or remove example entries.");
     if (e) console.error(e);
@@ -157,7 +158,7 @@ function mergeLayoutGroupsIntoConfigured(configuredGroups, layoutGroups) {
   }
 }
 
-export async function servicesResponse() {
+export async function servicesResponse(dashboardId = null) {
   let discoveredDockerServices;
   let discoveredKubernetesServices;
   let configuredServices;
@@ -183,7 +184,7 @@ export async function servicesResponse() {
   }
 
   try {
-    configuredServices = cleanServiceGroups(await servicesFromConfig());
+    configuredServices = cleanServiceGroups(await servicesFromConfig(dashboardId));
   } catch (e) {
     console.error("Failed to load services.yaml, please check for errors");
     if (e) console.error(e.toString());
@@ -191,7 +192,7 @@ export async function servicesResponse() {
   }
 
   try {
-    initialSettings = await getSettings();
+    initialSettings = await getSettings(dashboardId);
   } catch (e) {
     console.error("Failed to load settings.yaml, please check for errors");
     if (e) console.error(e.toString());
