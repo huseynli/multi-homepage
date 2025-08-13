@@ -61,7 +61,7 @@ export default function DashboardSelector() {
       {isOpen && (
         <div
           className={classNames(
-            "absolute right-0 top-full mt-1 min-w-48 z-50",
+            "absolute right-0 bottom-full mb-1 min-w-48 z-50",
             "bg-theme-50 dark:bg-theme-800/95 backdrop-blur-md",
             "border border-theme-300/20 dark:border-white/10",
             "rounded-md shadow-lg"
