@@ -25,9 +25,6 @@ export default function DashboardSelector() {
     };
   }, []);
 
-  if (dashboards.length <= 1) {
-    return null;
-  }
 
   const handleDashboardSwitch = (dashboardId) => {
     switchDashboard(dashboardId);
@@ -67,39 +64,43 @@ export default function DashboardSelector() {
             "rounded-md shadow-lg"
           )}
         >
-          <div className="py-1">
-            {dashboards.map((dashboard) => (
-              <button
-                key={dashboard.id}
-                onClick={() => handleDashboardSwitch(dashboard.id)}
-                className={classNames(
-                  "w-full text-left px-4 py-2 text-sm transition-colors duration-150",
-                  "hover:bg-theme-200/30 dark:hover:bg-white/10",
-                  dashboard.id === currentDashboard.id
-                    ? "bg-theme-300/30 dark:bg-white/10 text-theme-900 dark:text-theme-100 font-medium"
-                    : "text-theme-700 dark:text-theme-300"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{dashboard.name}</div>
-                    {dashboard.description && (
-                      <div className="text-xs text-theme-500 dark:text-theme-400">
-                        {dashboard.description}
-                      </div>
+          {dashboards.length > 1 && (
+            <div className="py-1">
+              {dashboards.map((dashboard) => (
+                <button
+                  key={dashboard.id}
+                  onClick={() => handleDashboardSwitch(dashboard.id)}
+                  className={classNames(
+                    "w-full text-left px-4 py-2 text-sm transition-colors duration-150",
+                    "hover:bg-theme-200/30 dark:hover:bg-white/10",
+                    dashboard.id === currentDashboard.id
+                      ? "bg-theme-300/30 dark:bg-white/10 text-theme-900 dark:text-theme-100 font-medium"
+                      : "text-theme-700 dark:text-theme-300"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{dashboard.name}</div>
+                      {dashboard.description && (
+                        <div className="text-xs text-theme-500 dark:text-theme-400">
+                          {dashboard.description}
+                        </div>
+                      )}
+                    </div>
+                    {dashboard.isDefault && (
+                      <span className="text-xs px-2 py-1 rounded bg-theme-300/50 dark:bg-white/20 text-theme-600 dark:text-theme-300">
+                        Default
+                      </span>
                     )}
                   </div>
-                  {dashboard.isDefault && (
-                    <span className="text-xs px-2 py-1 rounded bg-theme-300/50 dark:bg-white/20 text-theme-600 dark:text-theme-300">
-                      Default
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          )}
           
-          <div className="border-t border-theme-300/20 dark:border-white/10 pt-1 mt-1">
+          <div className={classNames(
+            dashboards.length > 1 ? "border-t border-theme-300/20 dark:border-white/10 pt-1 mt-1" : "py-1"
+          )}>
             <button
               onClick={() => {
                 setIsOpen(false);
