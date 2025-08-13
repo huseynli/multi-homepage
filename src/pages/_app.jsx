@@ -7,9 +7,11 @@ import "styles/theme.css";
 import { SWRConfig } from "swr";
 import { ColorProvider } from "utils/contexts/color";
 import { DashboardProvider } from "utils/contexts/dashboard";
+import { ModalProvider } from "utils/contexts/modal";
 import { SettingsProvider } from "utils/contexts/settings";
 import { TabProvider } from "utils/contexts/tab";
 import { ThemeProvider } from "utils/contexts/theme";
+import ModalContainer from "components/modal-container";
 
 import nextI18nextConfig from "../../next-i18next.config";
 
@@ -85,11 +87,14 @@ function MyApp({ Component, pageProps }) {
       <ColorProvider>
         <ThemeProvider>
           <DashboardProvider>
-            <SettingsProvider>
-              <TabProvider>
-                <Component {...pageProps} />
-              </TabProvider>
-            </SettingsProvider>
+            <ModalProvider>
+              <SettingsProvider>
+                <TabProvider>
+                  <Component {...pageProps} />
+                  <ModalContainer />
+                </TabProvider>
+              </SettingsProvider>
+            </ModalProvider>
           </DashboardProvider>
         </ThemeProvider>
       </ColorProvider>

@@ -13,20 +13,29 @@ import {
 } from "react-icons/hi";
 import classNames from "classnames";
 import { useDashboard } from "utils/contexts/dashboard";
+import { useModal } from "utils/contexts/modal";
 import { mutate } from "swr";
-
-import ConfigEditor from "./config-editor";
 
 export default function DashboardManagement({ isOpen, onClose }) {
   const { t } = useTranslation();
   const { dashboards, switchDashboard, currentDashboard } = useDashboard();
+  const { openModal } = useModal();
   const [isCreating, setIsCreating] = useState(false);
   const [editingDashboard, setEditingDashboard] = useState(null);
   const [deletingDashboard, setDeletingDashboard] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [configEditor, setConfigEditor] = useState({ isOpen: false, dashboardId: null, configType: null });
   const modalRef = useRef(null);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsCreating(false);
+      setEditingDashboard(null);
+      setDeletingDashboard(null);
+      setError("");
+    }
+  }, [isOpen]);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -35,23 +44,6 @@ export default function DashboardManagement({ isOpen, onClose }) {
     description: ""
   });
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen, onClose]);
 
   const resetForm = () => {
     setFormData({ id: "", name: "", description: "" });
@@ -182,20 +174,13 @@ export default function DashboardManagement({ isOpen, onClose }) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" />
-
-        <div
-          ref={modalRef}
-          className={classNames(
-            "inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform",
-            "bg-theme-50 dark:bg-theme-800 rounded-lg shadow-xl"
-          )}
-        >
+    <div
+      ref={modalRef}
+      className={classNames(
+        "w-full max-w-4xl overflow-hidden text-left align-middle bg-theme-50 dark:bg-theme-800 rounded-lg shadow-xl"
+      )}
+    >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-theme-200 dark:border-theme-700">
             <h3 className="text-lg font-medium text-theme-900 dark:text-theme-100">
@@ -386,7 +371,7 @@ export default function DashboardManagement({ isOpen, onClose }) {
                     {/* Configuration dropdown */}
                     <div className="relative">
                       <button
-                        onClick={() => setConfigEditor({ isOpen: true, dashboardId: dashboard.id, configType: 'services' })}
+                        onClick={() => openModal('config-editor', { dashboardId: dashboard.id, configType: 'services' })}
                         className="p-2 text-theme-500 hover:text-theme-700 dark:text-theme-400 dark:hover:text-theme-200"
                         title="Edit Services"
                       >
@@ -395,7 +380,7 @@ export default function DashboardManagement({ isOpen, onClose }) {
                     </div>
 
                     <button
-                      onClick={() => setConfigEditor({ isOpen: true, dashboardId: dashboard.id, configType: 'bookmarks' })}
+                      onClick={() => openModal('config-editor', { dashboardId: dashboard.id, configType: 'bookmarks' })}
                       className="p-2 text-theme-500 hover:text-theme-700 dark:text-theme-400 dark:hover:text-theme-200"
                       title="Edit Bookmarks"
                     >
@@ -403,7 +388,7 @@ export default function DashboardManagement({ isOpen, onClose }) {
                     </button>
 
                     <button
-                      onClick={() => setConfigEditor({ isOpen: true, dashboardId: dashboard.id, configType: 'widgets' })}
+                      onClick={() => openModal('config-editor', { dashboardId: dashboard.id, configType: 'widgets' })}
                       className="p-2 text-theme-500 hover:text-theme-700 dark:text-theme-400 dark:hover:text-theme-200"
                       title="Edit Widgets"
                     >
@@ -411,7 +396,7 @@ export default function DashboardManagement({ isOpen, onClose }) {
                     </button>
 
                     <button
-                      onClick={() => setConfigEditor({ isOpen: true, dashboardId: dashboard.id, configType: 'settings' })}
+                      onClick={() => openModal('config-editor', { dashboardId: dashboard.id, configType: 'settings' })}
                       className="p-2 text-theme-500 hover:text-theme-700 dark:text-theme-400 dark:hover:text-theme-200"
                       title="Edit Settings"
                     >
@@ -471,16 +456,6 @@ export default function DashboardManagement({ isOpen, onClose }) {
               </div>
             </div>
           )}
-        </div>
-      </div>
-      
-      {/* Config Editor Modal */}
-      <ConfigEditor
-        dashboardId={configEditor.dashboardId}
-        configType={configEditor.configType}
-        isOpen={configEditor.isOpen}
-        onClose={() => setConfigEditor({ isOpen: false, dashboardId: null, configType: null })}
-      />
     </div>
   );
 }

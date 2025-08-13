@@ -3,14 +3,13 @@ import { useTranslation } from "next-i18next";
 import { HiChevronDown, HiViewGrid, HiCog } from "react-icons/hi";
 import classNames from "classnames";
 import { useDashboard } from "utils/contexts/dashboard";
-
-import DashboardManagement from "./dashboard-management";
+import { useModal } from "utils/contexts/modal";
 
 export default function DashboardSelector() {
   const { t } = useTranslation();
   const { dashboards, currentDashboard, switchDashboard } = useDashboard();
+  const { openModal } = useModal();
   const [isOpen, setIsOpen] = useState(false);
-  const [showManagement, setShowManagement] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -104,7 +103,7 @@ export default function DashboardSelector() {
             <button
               onClick={() => {
                 setIsOpen(false);
-                setShowManagement(true);
+                openModal('dashboard-management');
               }}
               className={classNames(
                 "w-full text-left px-4 py-2 text-sm transition-colors duration-150",
@@ -118,11 +117,6 @@ export default function DashboardSelector() {
           </div>
         </div>
       )}
-      
-      <DashboardManagement 
-        isOpen={showManagement} 
-        onClose={() => setShowManagement(false)} 
-      />
     </div>
   );
 }

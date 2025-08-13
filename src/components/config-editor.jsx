@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "next-i18next";
 import { HiX, HiCode, HiEye, HiSave, HiRefresh } from "react-icons/hi";
 import classNames from "classnames";
@@ -6,12 +6,25 @@ import { mutate } from "swr";
 
 export default function ConfigEditor({ dashboardId, configType, isOpen, onClose }) {
   const { t } = useTranslation();
+  const modalRef = useRef(null);
   const [config, setConfig] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isPreview, setIsPreview] = useState(false);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setConfig("");
+      setError("");
+      setSuccess("");
+      setIsPreview(false);
+      setIsLoading(false);
+      setIsSaving(false);
+    }
+  }, [isOpen]);
 
   const configTitles = {
     services: "Services Configuration",
@@ -93,12 +106,21 @@ headerStyle: underlined
 hideVersion: false`
   };
 
+
   useEffect(() => {
-    if (isOpen && dashboardId && configType) {
+    if (dashboardId && configType) {
       loadConfig();
+    } else {
+      // Reset state if no props
+      setConfig("");
+      setError("");
+      setSuccess("");
+      setIsPreview(false);
+      setIsLoading(false);
+      setIsSaving(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, dashboardId, configType]);
+  }, [dashboardId, configType]);
 
   const loadConfig = async () => {
     setIsLoading(true);
@@ -174,14 +196,8 @@ hideVersion: false`
     setSuccess("");
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" />
-
-        <div className="inline-block w-full max-w-6xl my-8 overflow-hidden text-left align-middle transition-all transform bg-theme-50 dark:bg-theme-800 rounded-lg shadow-xl">
+    <div className="w-full max-w-6xl overflow-hidden text-left align-middle bg-theme-50 dark:bg-theme-800 rounded-lg shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-theme-200 dark:border-theme-700">
             <div>
@@ -313,8 +329,6 @@ hideVersion: false`
               </div>
             )}
           </div>
-        </div>
-      </div>
     </div>
   );
 }
