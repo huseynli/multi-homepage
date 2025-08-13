@@ -32,7 +32,4 @@ This fork specifically adds multi-dashboard functionality while maintaining full
 
 ### Support the Original Project
 
-If you find this project useful, please consider supporting the original Homepage project (not me):
-
-- ⭐ Star the [original repository](https://github.com/gethomepage/homepage)
-- 💝 [Sponsor the original author](https://github.com/sponsors/benphelps)
+If you find this project useful, please consider supporting the original Homepage project.
