@@ -28,6 +28,9 @@ export function DashboardProvider({ children }) {
   // Initialize dashboard from URL, then localStorage, then default
   useEffect(() => {
     if (!router.isReady || isInitialized) return;
+    
+    // Don't initialize until we have real dashboard data (not just the fallback)
+    if (!dashboardsData?.dashboards) return;
 
     const urlDashboard = router.query.dashboard;
     let targetDashboard = "default";
@@ -50,7 +53,7 @@ export function DashboardProvider({ children }) {
     if (targetDashboard !== "default" && !urlDashboard) {
       router.replace({ pathname: router.pathname, query: { dashboard: targetDashboard } }, undefined, { shallow: true });
     }
-  }, [router.isReady, router.query.dashboard, dashboards, isInitialized, router]);
+  }, [router.isReady, router.query.dashboard, dashboards, dashboardsData, isInitialized, router]);
 
   // Save active dashboard to localStorage
   useEffect(() => {
