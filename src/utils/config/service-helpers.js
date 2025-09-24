@@ -637,8 +637,8 @@ export function findGroupByName(groups, name) {
   return null;
 }
 
-export async function getServiceItem(group, service) {
-  const configuredServices = await servicesFromConfig();
+export async function getServiceItem(group, service, dashboardId = null) {
+  const configuredServices = await servicesFromConfig(dashboardId);
 
   const serviceGroup = findGroupByName(configuredServices, group);
   if (serviceGroup) {

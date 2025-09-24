@@ -1,14 +1,20 @@
 import { performance } from "perf_hooks";
 
 import { getServiceItem } from "utils/config/service-helpers";
+import { validateDashboardId } from "utils/config/dashboard-helpers";
 import createLogger from "utils/logger";
 import { httpProxy } from "utils/proxy/http";
 
 const logger = createLogger("siteMonitor");
 
 export default async function handler(req, res) {
-  const { groupName, serviceName } = req.query;
-  const serviceItem = await getServiceItem(groupName, serviceName);
+  const { groupName, serviceName, dashboard } = req.query;
+  
+  if (dashboard && !validateDashboardId(dashboard)) {
+    return res.status(400).json({ error: "Invalid dashboard ID" });
+  }
+  
+  const serviceItem = await getServiceItem(groupName, serviceName, dashboard);
   if (!serviceItem) {
     logger.debug(`No service item found for group ${groupName} named ${serviceName}`);
     return res.status(400).send({

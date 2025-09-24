@@ -1,9 +1,17 @@
 import { useTranslation } from "next-i18next";
 import useSWR from "swr";
+import { useDashboard } from "utils/contexts/dashboard";
 
 export default function SiteMonitor({ groupName, serviceName, style }) {
   const { t } = useTranslation();
-  const { data, error } = useSWR(`/api/siteMonitor?${new URLSearchParams({ groupName, serviceName }).toString()}`, {
+  const { activeDashboard } = useDashboard();
+  
+  const params = new URLSearchParams({ groupName, serviceName });
+  if (activeDashboard && activeDashboard !== "default") {
+    params.append("dashboard", activeDashboard);
+  }
+  
+  const { data, error } = useSWR(`/api/siteMonitor?${params.toString()}`, {
     refreshInterval: 30000,
   });
 
