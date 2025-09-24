@@ -264,7 +264,7 @@ hideVersion: false`
                       "w-full p-4 font-mono text-sm rounded-lg border",
                       "border-theme-300 dark:border-theme-600",
                       "bg-white dark:bg-theme-900 text-theme-900 dark:text-theme-100",
-                      "focus:border-blue-500 focus:ring-blue-500 resize-none"
+                      "focus:border-blue-500 focus:ring-blue-500 resize min-h-96"
                     )}
                     style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}
                   />
