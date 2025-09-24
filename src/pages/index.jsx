@@ -212,14 +212,24 @@ function Home({ initialSettings }) {
   const { activeDashboard } = useDashboard();
   const { asPath } = useRouter();
 
-  useEffect(() => {
-    setSettings(initialSettings);
-  }, [initialSettings, setSettings]);
-
   const dashboardParam = activeDashboard !== "default" ? `?dashboard=${activeDashboard}` : "";
   const { data: services } = useSWR(`/api/services${dashboardParam}`);
   const { data: bookmarks } = useSWR(`/api/bookmarks${dashboardParam}`);
   const { data: widgets } = useSWR(`/api/widgets${dashboardParam}`);
+  const { data: dashboardSettings } = useSWR(`/api/settings${dashboardParam}`);
+
+  useEffect(() => {
+    setSettings(initialSettings);
+  }, [initialSettings, setSettings]);
+
+  // Update settings when dashboard-specific settings are loaded
+  useEffect(() => {
+    if (dashboardSettings) {
+      setSettings(dashboardSettings);
+    } else {
+      setSettings(initialSettings);
+    }
+  }, [dashboardSettings, initialSettings, setSettings]);
 
   const servicesAndBookmarks = [
     ...(bookmarks || []).map((bg) => bg.bookmarks).flat(), 
@@ -282,11 +292,44 @@ function Home({ initialSettings }) {
   );
 
   useEffect(() => {
-    if (!activeTab) {
-      const initialTab = asPath.substring(asPath.indexOf("#") + 1);
-      setActiveTab(initialTab === "/" ? slugifyAndEncode(tabs["0"]) : initialTab);
+    if (!activeTab && tabs.length > 0) {
+      const hash = typeof window !== "undefined" ? window.location.hash.substring(1) : "";
+      if (hash && tabs.some(tab => slugifyAndEncode(tab) === hash)) {
+        setActiveTab(hash);
+      } else {
+        setActiveTab(slugifyAndEncode(tabs[0]));
+      }
     }
-  });
+  }, [activeTab, tabs, setActiveTab]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1);
+      if (hash && tabs.some(tab => slugifyAndEncode(tab) === hash)) {
+        setActiveTab(hash);
+      } else if (tabs.length > 0) {
+        setActiveTab(slugifyAndEncode(tabs[0]));
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", handleHashChange);
+      return () => window.removeEventListener("hashchange", handleHashChange);
+    }
+  }, [tabs, setActiveTab]);
+
+  // Reset active tab when dashboard changes
+  useEffect(() => {
+    if (tabs.length > 0) {
+      // Clear hash and reset to first tab when dashboard changes
+      if (typeof window !== "undefined") {
+        window.location.hash = "";
+      }
+      setActiveTab(slugifyAndEncode(tabs[0]));
+    } else {
+      setActiveTab("");
+    }
+  }, [activeDashboard, tabs, setActiveTab]);
 
   const servicesAndBookmarksGroups = useMemo(() => {
     const tabGroupFilter = (g) => g && [activeTab, ""].includes(slugifyAndEncode(settings.layout?.[g.name]?.tab));
